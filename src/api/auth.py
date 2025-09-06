@@ -2,11 +2,12 @@ import asyncio
 
 from fastapi import APIRouter, HTTPException, Body, Response
 from fastapi import BackgroundTasks
+from starlette.requests import Request
 
-from src.schemas.users import UserAdd, UserRegisterRequest, UserLoginRequest
+from src.schemas.users import UserAdd, UserRegisterRequest, UserLoginRequest, AuthCheckResponse
 from src.services.auth_service import AuthService
 from src.services.email_service import EmailService
-from src.api.dependencies import DBDep
+from src.api.dependencies import DBDep, UserDep
 
 from src.utils.openapi_examples import user_register_examples, user_login_examples
 from src.utils.logger import get_auth_logger
@@ -147,3 +148,20 @@ async def login_user(
         raise HTTPException(status_code=500, detail="Internal server error")
     finally:
         await db.session.close()
+
+
+@router.get(
+    "/check-auth",
+    summary="Проверка авторизации. Служебный api",
+    description="Проверяет валидность JWT и возвращает данные пользователя",
+    response_model=AuthCheckResponse,
+)
+async def check_auth(user_data: UserDep):
+    return {
+        "authenticated": True,
+        "user": {
+            "id": user_data.id,
+            "login": user_data.login,
+            "email_verified": user_data.email_verified,
+        },
+    }
