@@ -321,6 +321,8 @@ pip install black && pip freeze > requirements.txt
 script_location = src/migrations
 file_template = %%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s
 prepend_sys_path = . src
+# также для MAC OS 
+prepend_sys_path = .:src
 version_path_separator = os
 # или
 path_separator = space
@@ -346,7 +348,7 @@ target_metadata = Base.metadata
 alembic revision --autogenerate -m "initial migration"
 ```
 На данном этапе при запуске миграции также возникает проблема ModuleNotFoundError: No module named 'src'.
-Временное решение для env.py перед имортом settings:
+Временное решение для env.py перед импортом settings:
 ```python
 import sys
 from pathlib import Path
@@ -360,10 +362,21 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 $env:pythonpath="."; alembic revision --autogenerate -m "initial migration"
 ```
 
-А также решается проблема пути к модулю указанием сепаратора в alembic.ini:
+А также (рекомендуемо после тщательного изучения вопроса и вариантов решения) решается проблема пути к модулю 
+указанием сепаратора в alembic.ini. То есть надо подбирать, в зависимости от системы, пару prepend_sys_path/path_separator.
+Например:
 ```ini
+prepend_sys_path = . src
+# +
 path_separator = space
+# или
+prepend_sys_path = .:src
+# +
+path_separator = os
 ```
+
+И в таком духе. Проще говоря, необходимо сориентировать компилятор alembic где ему искать сырцы и конфиги)
+
 * Миграция
 ```SHELL
 alembic upgrade head
@@ -398,3 +411,12 @@ pip install pydantic-settings; pip freeze > requirements.txt
 с секретами (.env)) и вычисляемые свойства. 
 Далее переменная с этим классом импортируется по месту использования переменных окружения.
 
+## Авторизация
+
+Схема безопасности: OAuth2 с паролем (и хешированием), Bearer с JWT-токенами
+
+Создание случайного секретного ключа
+
+```SHELL
+openssl rand -hex 32
+```

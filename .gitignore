@@ -7,3 +7,6 @@ celerybeat-schedule.db
 certs
 database
 .vscode
+**/logs
+**/migrations
+**/alembic.ini
