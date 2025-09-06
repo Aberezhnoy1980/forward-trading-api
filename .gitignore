@@ -10,3 +10,7 @@ database
 **/logs
 **/migrations
 **/alembic.ini
+**/*.drawio
+**/sys_arch_dark.png
+**/sys_arch_trans.png
+**/sys_arch.png
