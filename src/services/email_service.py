@@ -105,25 +105,71 @@ class EmailService:
 
         try:
             await fm.send_message(message)
-            # logger.info(f"HTML письмо отправлено на {email}")
+            logger.info(f"HTML письмо отправлено на {email}")
             return True
         except Exception as e:
-#             logger.error(f"Ошибка отправки HTML письма: {e}")
+            logger.error(f"Ошибка отправки HTML письма: {e}")
             return False
 
     @staticmethod
     async def send_password_reset_email(email: str, token: str):
-        reset_url = f"{settings.DOMAIN}api/v1/auth/reset-password?token={token}"
+        reset_url = f"{settings.DOMAIN}api/v1/auth/password-reset/confirm?token={token}"
+
+        html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .button {{ 
+                        display: inline-block; 
+                        padding: 12px 24px; 
+                        background-color: #007bff; 
+                        color: white; 
+                        text-decoration: none; 
+                        border-radius: 5px; 
+                        margin: 20px 0; 
+                    }}
+                    .footer {{ color: #666; font-size: 12px; margin-top: 30px; }}
+                </style>
+            </head>
+            <body>
+                <p>'Здравствуйте!'</p>
+
+                <p>На данный адрес получен запрос на сброс пароля</p>
+
+                <p>Для сброса пароля нажмите на кнопку:</p>
+
+                <a href="{reset_url}" class="button">Сбросить пароль</a>
+
+                <p>Или скопируйте ссылку в браузер:<br>
+                <small>{reset_url}</small></p>
+
+                <div class="footer">
+                    <p><strong>Важно:</strong></p>
+                    <ul>
+                        <li>Ссылка действительна в течение 1 часа</li>
+                        <li>Если вы не запрашивали сброс пароля, проигнорируйте это письмо</li>
+                    </ul>
+                    <p>С уважением,<br>Команда Forward Trading</p>
+                </div>
+            </body>
+            </html>
+            """
+        fm = FastMail(conf)
 
         message = MessageSchema(
             subject="Сброс пароля в Forward Trading",
             recipients=[email],
-            body=f"""
-            Для сброса пароля перейдите по ссылке:
-            {reset_url}
-
-            Ссылка действительна 1 час.
-            """,
-            subtype="html"
+            body=html_content,
+            subtype=MessageType.html
         )
-        await FastMail(conf).send_message(message)
+
+        try:
+            await fm.send_message(message)
+            logger.info(f"HTML письмо отправлено на {email}")
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка отправки HTML письма: {e}")
+            return False

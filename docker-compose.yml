@@ -1,0 +1,22 @@
+networks:
+  dev:
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+      - '/etc/nginx/ssl/ft-api.ru/:/etc/nginx/ssl/ft-api.ru'
+    depends_on:
+      - backend
+    networks:
+      - dev
+
+  backend:
+    build:
+      context: .
+    networks:
+      - dev

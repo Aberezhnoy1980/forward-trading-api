@@ -165,3 +165,61 @@ async def check_auth(user_data: UserDep):
             "email_verified": user_data.email_verified,
         },
     }
+
+
+@router.post(
+    "/logout",
+    summary="Выход пользователя из системы",
+    description="Удаляет JWT из cookies и возвращает статус"
+)
+async def logout(response: Response):
+    response.delete_cookie(
+        "ft_access_token",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+    )
+    return {
+        "status": "success",
+        "message": "Сессия завершена",
+        "actions": ["clear_local_storage"]  # Указание фронтенду на дополнительные действия
+    }
+
+
+@router.post("/password-reset/request")
+async def request_password_reset(
+        db: DBDep,
+        background_tasks: BackgroundTasks,
+        email: str = Body(..., embed=True),
+):
+    """Запрос на сброс пароля (отправка письма)"""
+    user = await db.users.get_by_email(email)
+    if not user:
+        return {"status": f"Пользователь с email {email} не найден"}
+
+    reset_token = AuthService.create_password_reset_token(user.email)
+    background_tasks.add_task(
+        EmailService.send_password_reset_email,
+        user.email,
+        reset_token
+    )
+    return {"status": f"Письмо с инструкциями для восстановления пароля отправлены на {email}"}
+
+
+@router.post("/password-reset/confirm")
+async def confirm_password_reset(
+        db: DBDep,
+        token: str = Body(..., embed=True),
+        new_password: str = Body(..., min_length=8, embed=True)
+):
+    """Подтверждение сброса пароля"""
+    email = AuthService.verify_password_reset_token(token)
+    user = await db.users.get_by_email(email)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    hashed_password = AuthService.hash_password(new_password)
+    await db.users.update_password(user.id, hashed_password)
+    await db.commit()
+
+    return {"status": "ok"}
