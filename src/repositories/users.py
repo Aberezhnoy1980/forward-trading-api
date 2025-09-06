@@ -4,6 +4,10 @@ from src.repositories.base import BaseRepository
 from src.models.users import UsersOrm
 from src.schemas.users import User, UserWithHashedPassword
 
+from src.utils.logger import get_user_repo_logger
+
+logger = get_user_repo_logger()
+
 
 class UsersRepository(BaseRepository):
     model = UsersOrm
