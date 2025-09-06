@@ -49,5 +49,9 @@ def get_db_logger(log_file: str | None = None):
     return LoggerFactory.get_logger("database", log_file)
 
 
+def get_user_repo_logger(log_file: str | None = None):
+    return LoggerFactory.get_logger("user_repository", log_file)
+
+
 def get_app_logger():
     return LoggerFactory.get_logger("app")

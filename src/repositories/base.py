@@ -5,8 +5,9 @@ from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from src.users_db import engine
+from src.utils.logger import get_user_repo_logger
 
-logger = logging.getLogger(__name__)
+logger = get_user_repo_logger()
 
 
 class BaseRepository:
@@ -65,10 +66,10 @@ class BaseRepository:
             )
         except IntegrityError:
             raise
-        print(update_data_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+        logger.info(update_data_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         await self.session.execute(update_data_stmt)
 
     async def delete(self, **filter_by):
         delete_data_stmt = delete(self.model).filter_by(**filter_by)
-        print(delete_data_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+        logger.info(delete_data_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         await self.session.execute(delete_data_stmt)
