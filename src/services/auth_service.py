@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from passlib.context import CryptContext
 import jwt
 
-from src.api.dependencies import DBDep
+# from src.api.dependencies import DBDep
 from src.config import settings
 
 
@@ -44,10 +44,10 @@ class AuthService:
         except jwt.PyJWTError as e:
             raise HTTPException(status_code=401, detail=f"Неверный токен: {str(e)}")
 
-    @staticmethod
-    async def get_user(db: DBDep, user_id: int):
-        user = await db.users.get_one_or_none(id=user_id)
-        return user
+    # @staticmethod
+    # async def get_user(db: DBDep, user_id: int):
+    #     user = await db.users.get_one_or_none(id=user_id)
+    #     return user
 
     @staticmethod
     def create_password_reset_token(email: str) -> str:
